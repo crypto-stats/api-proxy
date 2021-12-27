@@ -5,7 +5,7 @@ const ONE_DAY = 24 * 60 * 60 * 1000
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const startDate = new Date(req.query.date as string)
-    const endDate = new Date(startDate.getTime() + ONE_DAY)
+    const endDate = new Date(startDate.getTime() + ONE_DAY - 1)
 
     const apiRequest = await fetch('https://api.solana.fm/', {
       headers: {
@@ -16,7 +16,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       body: JSON.stringify({
         query: `{
           solana {
-            totalFees(date: {from: "${startDate.toISOString()}", to: "${endDate.toISOString()}"})
+            totalFeesInTimeRange(time: { 
+              from: "${startDate.toISOString()}", 
+              to: "${endDate.toISOString()}", 
+              resolution: ONE_DAY}) {
+              time,
+              value
+            }
           }
         }`
       }),
@@ -33,11 +39,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(200).json({})
     }
 
-    console.log(json)
-
-    if (json?.data?.solana?.totalFees) {
+    if ((json?.data?.solana?.totalFeesInTimeRange || []).length > 0) {
       res.setHeader('Cache-Control', 'max-age=60, s-maxage=${60 * 60}, stale-while-revalidate');
-      res.json({ statusCode: 200, value: json?.data?.solana?.totalFees })
+      res.json({ statusCode: 200, value: json?.data?.solana?.totalFeesInTimeRange[0].value })
       return
     }
 
