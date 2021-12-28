@@ -45,7 +45,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return
     }
 
-    res.status(500).json({ statusCode: 404, message: `Couldn't find data on ${req.query.date}` })
+    res.status(500).json({ statusCode: 404, message: `Couldn't find data on ${req.query.date}`, error: json.errors })
   } catch (err) {
     console.error(err)
     res.status(500).json({ statusCode: 500, message: err.message })
