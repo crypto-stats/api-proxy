@@ -1,6 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
-export function wrapHandler(handler: (req: NextApiRequest, res: NextApiResponse) => Promise<void>) {
+export function wrapHandler(
+  handler: (req: NextApiRequest, res: NextApiResponse) => Promise<void>,
+  { allowedMethods }: { allowedMethods?: string[] } = {}
+) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       res.setHeader('Access-Control-Allow-Origin', '*')
@@ -11,6 +14,10 @@ export function wrapHandler(handler: (req: NextApiRequest, res: NextApiResponse)
       if (req.method == 'OPTIONS') {
         res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET')
         return res.status(200).json({})
+      }
+
+      if (allowedMethods && allowedMethods.indexOf(req.method) === -1) {
+        return res.status(400).json({ error: `Only ${allowedMethods.join(', ')} methods allowed`})
       }
       
       await handler(req, res)
