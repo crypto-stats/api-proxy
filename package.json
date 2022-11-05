@@ -7,6 +7,7 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "eventsource": "^2.0.2",
     "next": "latest",
     "pg": "^8.7.3",
     "react": "^17.0.2",

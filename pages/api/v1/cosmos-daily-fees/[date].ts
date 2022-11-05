@@ -24,7 +24,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const json = await request.json()
 
     if (json && json.length === 1) {
-      res.setHeader('Cache-Control', 'max-age=60, s-maxage=${60 * 60}, stale-while-revalidate');
+      res.setHeader('Cache-Control', `max-age=60, s-maxage=${60 * 60}, stale-while-revalidate`);
       res.json({ statusCode: 200, value: json[0].value })
     } else {
       res.status(500).json({ statusCode: 404, message: `Couldn't find ATOM on ${dateStr}` })
