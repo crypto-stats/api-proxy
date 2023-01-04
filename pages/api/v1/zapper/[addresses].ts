@@ -3,6 +3,8 @@ import { wrapHandler } from "utils/requests";
 import EventSource from "eventsource";
 import { CryptoStatsSDK, Context } from "@cryptostats/sdk";
 
+const TIMEOUT = 5000;
+
 const generateUrl = (addresses: string[]) => {
   let url = `https://api.zapper.fi/v2/balances?`;
   addresses.forEach((address, _index) => {
@@ -27,12 +29,15 @@ const generateEventSourceDict = (apiKey: string) => {
 function getBalances(eventSource: EventSource): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const result: any[] = [];
+    let completed = false;
 
     eventSource.addEventListener("open", () => {
       console.log("Open ...");
     });
 
     eventSource.addEventListener("error", (err) => {
+      console.log(`Error querying: ${err.message}`);
+      eventSource.close();
       reject(new Error(err.message));
     });
 
@@ -58,9 +63,17 @@ function getBalances(eventSource: EventSource): Promise<any[]> {
     });
 
     eventSource.addEventListener("end", () => {
+      completed = true;
       eventSource.close();
       resolve(result);
     });
+
+    setTimeout(() => {
+      if (!completed) {
+        eventSource.close();
+        reject(new Error('Query timed out'));
+      }
+    }, TIMEOUT);
   });
 }
 
